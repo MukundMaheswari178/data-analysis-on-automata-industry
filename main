@@ -1,0 +1,209 @@
+Importing the Dependencies
+import pandas as pd
+import numpy as np
+import pickle
+
+# for visualization thr datasheet 
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# for predection linear regression
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import Lasso
+from sklearn import metrics
+import plotly
+import plotly.express as px
+Collection, Processing  And read the concerned datasheet
+Car datasheet(Ex-showroomPrice to all Features),Selling Car DAtasheet(state_wise & Company wise)
+# Load and read the Data fron csv file to Pandas Dataframe
+df=pd.read_csv('datafile\cars_ds_final.csv',encoding='latin-1')
+pf=pd.read_csv('datafile\sales-companywise.csv',encoding='latin-1')
+cf=pd.read_csv('datafile\sale-Statewise.csv',encoding='latin-1')
+
+
+Visualizing and analyisng the Models and Companies
+# Bar_Chart of most cars companies
+df['Make'].value_counts()[0:15]
+plt.figure(figsize=(8,5))
+plt.bar(list(df['Make'].value_counts()[0:5].keys()),list(df['Make'].value_counts()[0:5]),color="y")
+plt.show()
+# Bar_chart of Top models cars of Companies
+df['Model'].value_counts()[0:10]
+plt.figure(figsize=(8,5))
+plt.bar(list(df['Model'].value_counts()[0:5].keys()),list(df['Model'].value_counts()[0:5]))
+plt.show()
+Analysis And Visualization of Fuel_types
+# Bar Chart of Mostly used fuel types
+df['Fuel_Type'].value_counts()[0:10]
+plt.figure(figsize=(8,5))
+plt.bar(list(df['Fuel_Type'].value_counts()[0:5].keys()),list(df['Fuel_Type'].value_counts()[0:5]),color="r")
+plt.show()
+
+Analysis and Print Top Car Model & compamies 
+# print list of top 5 car Compamies
+list(df['Make'].value_counts()[0:5].keys())
+
+# Bar Chart of Top 5 Cars Companies
+plt.figure(figsize=(8,5))
+plt.bar(list(df['Make'].value_counts()[0:5].keys()),list(df['Make'].value_counts()[0:5]))
+plt.show()
+Data Handeling And cleaning the dataSheet of Car_sheet
+# replace all null value and empty string
+df=df.fillna('')
+df=df.replace(' ', '')
+
+#splitting the column
+df['Displacement']=df['Displacement'].str.split(' ').str.get(0)
+df['Fuel_Tank_Capacity']=df['Fuel_Tank_Capacity'].str.split(' ').str.get(0)
+df['Height']=df['Height'].str.split(' ').str.get(0)
+df['Length']=df['Length'].str.split(' ').str.get(0)
+
+# replacing Unused Data of column
+
+df['Ex-Showroom_Price']=df['Ex-Showroom_Price'].str.replace('Rs. ','')
+df['Ex-Showroom_Price']=df['Ex-Showroom_Price'].str.replace(',','')
+
+df['Width']=df['Width'].str.split(' ').str.get(0)
+df['Fuel_Tank_Capacity']=df['Fuel_Tank_Capacity'].str.split(' ').str.get(0)
+df['Boot_Space']=df['Boot_Space'].str.split(' ').str.get(0)
+df['City_Mileage']=df['City_Mileage'].str.split(' ').str.get(0)
+df['City_Mileage']=df['City_Mileage'].str.split(' ').str.get(0).str.replace(',','')
+
+# handling Mistake in Data Entry
+
+df=df[df['Gears']!='7 Dual Clutch']
+df=df[df['Gears']!='Single Speed Reduction Gear']
+
+# replacing unsed data
+df['Ex-Showroom_Price']=df['Ex-Showroom_Price'].str.replace(',','')
+df['Ex-Showroom_Price']=df['Ex-Showroom_Price'].str.replace('Rs.','')
+df['Displacement']=df['Displacement'].str.replace('cc','')
+
+# Data type correction / convertion
+df[['Cylinders', 'Valves_Per_Cylinder', 'Doors', 'Seating_Capacity', 'Number_of_Airbags', 'Ex-Showroom_Price', 'Displacement']] = df[['Cylinders', 'Valves_Per_Cylinder', 'Doors', 'Seating_Capacity', 'Number_of_Airbags', 'Ex-Showroom_Price', 'Displacement']].apply(pd.to_numeric)
+
+
+
+df['Basic_Warranty']=df['Basic_Warranty'].str.split(' ').str.get(0).str.replace('3rd','3')
+
+# checked the Data Are cleared Are Not
+print(df['Ex-Showroom_Price'])
+print(df['City_Mileage'])
+Data Understanding
+# pritnt top max priceable Car
+df['Ex-Showroom_Price'].max()
+df.head()
+Replace String to int and Make a new Column for Visualization data
+# Add three Column Petrol,Diesel ,Cng,and Electric 
+df['Diesel']=df['Fuel_Type'].apply(lambda x: 1 if 'Diesel' in x else 0)
+df['CNG']=df['Fuel_Type'].apply(lambda x: 1 if 'CNG' in x else 0)
+df['Petrol']=df['Fuel_Type'].apply(lambda x: 1 if 'Petrol' in x else 0)
+df['Electric']=df['Fuel_Type'].apply(lambda x: 1 if 'Electric' in x else 0)
+
+Data Visualisation
+# visualization Relation between fuel type and Showrrom price by Bar_Chart
+df['Fuel_Type'].value_counts()
+plt.figure(figsize=(8,5))
+plt.bar(list(df['Fuel_Type'].value_counts()[0:5].keys()),list(df['Ex-Showroom_Price'].value_counts()[0:5]))
+plt.show()
+# visualization all data 
+f,ax = plt.subplots(figsize=(14,10))
+sns.heatmap(df.corr(), annot=True, fmt=".2f", ax=ax)
+plt.show()
+Pie Chart of Car MAking Company
+# barplot of Showroom price and company and Analysis 
+sns.distplot(df['Ex-Showroom_Price'])
+sns.barplot(x=df['Make'],y=df['Ex-Showroom_Price'])
+plt.xticks(rotation='vertical')
+plt.show()
+# pie chart top making Companies of India
+fig = plt.figure(figsize = (10,10))
+ax = fig.subplots()
+df.Make.value_counts().plot(ax=ax, kind='pie')
+ax.set_ylabel("")
+ax.set_title("Top Car Making Companies in India")
+plt.show()
+Data Correction and Cleaning of Sale_datasheet(company & Sate wise)
+#### cleaning dataSheet of sale company wise
+
+# replace all null value and empty string
+pf=pf.fillna('')
+pf=pf.replace(' ', '')
+
+# replace the non used data
+pf['ap22']=pf['ap22'].str.replace(',','')
+pf['ap21']=pf['ap21'].str.replace(',','')
+
+# Data converstion
+pf['ap22']=pf['ap22'].astype(int)
+pf.info()
+
+#### cleaning dataSheet of sale state wise
+
+
+# replace all null value and empty string
+cf=cf.fillna('')
+cf=cf.replace(' ', '')
+
+# replace the non used data
+cf['sale_car']=cf['sale_car'].str.replace(',','')
+cf['sale_percentace']=cf['sale_percentace'].str.replace('%','')
+
+# Data converstion
+cf['sale_percentace']=cf['sale_percentace'].astype(float)
+cf['sale_car']=cf['sale_car'].astype(float)
+cf.info()
+
+Visualisation of Most saling car companies and state wise
+# bar Char of most salling compaines
+plt.figure(figsize=(20,10))
+sns.barplot(x=pf['OEM'],y=pf['ap22'])
+plt.xticks(rotation='horizontal')
+plt.xticks(fontsize=10)
+plt.show()
+# bar Char of most salling car state wise
+plt.figure(figsize=(20,10))
+sns.barplot(x=cf['state'],y=cf['sale_car'])
+plt.xticks(rotation='horizontal')
+plt.xticks(fontsize=10)
+plt.show()
+Visualization and Analysis of Salling
+# analysis & visualizing the most selling car model of car campanies by plot Chart 
+plt.figure(figsize=(20,10))
+sns.barplot(x=cf['state'],y=cf['sale_percentace'])
+plt.xticks(rotation='horizontal')
+plt.xticks(fontsize=10)
+plt.show()
+# analysis & visualizing the most selling car model of car campanies by plot Chart 
+plt.figure(figsize=(16,7))
+sns.countplot(data=df, y='Body_Type',alpha=.6,color='blue')
+plt.title('Cars by car body type',fontsize=20)
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
+plt.xlabel('')
+plt.ylabel('')
+# plot the pie Chart Most saling fuel type of Engine
+fig = plt.figure(figsize = (10,10))
+ax = fig.subplots()
+df.Fuel_Type.value_counts().plot(ax=ax, kind='pie')
+ax.set_ylabel("")
+ax.set_title("Cars Count by Engine Fuel Type")
+plt.show()
+# visualising realtion between show room price body type varient
+plt.figure(figsize=(10,8))
+sns.scatterplot(data=df, x='Displacement', y='Ex-Showroom_Price',hue='Body_Type',palette='viridis',alpha=.89, s=120 );
+plt.xticks(fontsize=13)
+plt.yticks(fontsize=13)
+plt.xlabel('power',fontsize=14)
+plt.ylabel('price',fontsize=14)
+plt.title('Relation between Displacement and price',fontsize=20);
+
+# visualiztion price effect of diaplacement fuel type 
+sns.pairplot(df,vars=[ 'Displacement', 'Ex-Showroom_Price'], hue= 'Fuel_Type', palette=sns.color_palette('magma'),diag_kind='kde',height=2, aspect=1.8);
+
+3D Graph Visualization
+#3D Graph Visualization
+fig = px.scatter_3d(df, x='Displacement', z='Ex-Showroom_Price', y='Fuel_Type',color='Make',width=800,height=750)
+fig.update_layout(showlegend=True)
+fig.show()
